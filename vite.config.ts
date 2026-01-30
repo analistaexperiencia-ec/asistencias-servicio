@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   define: {
-    // Definimos process.env para que el código del frontend pueda acceder a la API_KEY inyectada por Netlify
+    // Definimos process.env.API_KEY para compatibilidad con el código proporcionado
     'process.env.API_KEY': JSON.stringify(process.env.API_KEY || '')
   },
   build: {
