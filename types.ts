@@ -8,11 +8,9 @@ export interface Proveedor {
   id: string;
   nombre_proveedor: string;
   categoria: string;
-  direccion: string;
   ubicacion: Ubicacion;
   ciudad: string;
   provincia: string;
-  nombre_contacto: string;
   numero_celular: string;
   distancia?: number; // Calculada dinámicamente
 }

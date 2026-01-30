@@ -1,10 +1,6 @@
 
 /**
  * BACKEND SERVER (Node.js + Express + MongoDB)
- * 
- * Este archivo es una representación del backend solicitado.
- * Para ejecutarlo en producción, se requiere un entorno Node.js
- * y una URI de MongoDB Atlas válida.
  */
 
 const express = require('express');
@@ -16,18 +12,16 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Esquema de Mongoose
+// Esquema de Mongoose actualizado
 const proveedorSchema = new mongoose.Schema({
   nombre_proveedor: { type: String, required: true },
   categoria: { type: String, required: true },
-  direccion: { type: String, required: true },
   ubicacion: {
     lat: { type: Number, required: true },
     lng: { type: Number, required: true }
   },
   ciudad: { type: String, required: true },
   provincia: { type: String, required: true },
-  nombre_contacto: { type: String },
   numero_celular: { type: String, required: true }
 });
 

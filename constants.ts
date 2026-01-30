@@ -1,6 +1,13 @@
 
 import { Proveedor } from './types';
 
+/**
+ * URL de exportación CSV para el Google Sheet del usuario.
+ * El ID es: 1xi__RmraqJ9sVinB2Ow0P6wynpTIsKgJH4XJRryHS6k
+ */
+export const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1xi__RmraqJ9sVinB2Ow0P6wynpTIsKgJH4XJRryHS6k/export?format=csv';
+
+// Estos se mantendrán como base, pero la App los complementará con los datos del Excel
 export const PROVINCIAS_ECUADOR = [
   'Azuay', 'Bolívar', 'Cañar', 'Carchi', 'Chimborazo', 'Cotopaxi', 'El Oro', 
   'Esmeraldas', 'Galápagos', 'Guayas', 'Imbabura', 'Loja', 'Los Ríos', 
@@ -9,62 +16,7 @@ export const PROVINCIAS_ECUADOR = [
   'Zamora Chinchipe'
 ];
 
-export const CATEGORIAS = ['Grúa', 'Médica', 'Auxilio Vial', 'Dental', 'Seguro'];
+export const CATEGORIAS_BASE = ['Grúa', 'Médica', 'Auxilio Vial', 'Dental', 'Seguro'];
 
-export const SEED_DATA: Proveedor[] = [
-  {
-    id: '1',
-    nombre_proveedor: 'Grúas Pichincha Express',
-    categoria: 'Grúa',
-    direccion: 'Av. Amazonas y Naciones Unidas',
-    ubicacion: { lat: -0.1758, lng: -78.4821 },
-    ciudad: 'Quito',
-    provincia: 'Pichincha',
-    nombre_contacto: 'Carlos Pérez',
-    numero_celular: '0991234567'
-  },
-  {
-    id: '2',
-    nombre_proveedor: 'Asistencia Médica Guayas',
-    categoria: 'Médica',
-    direccion: 'Av. 9 de Octubre y Boyacá',
-    ubicacion: { lat: -2.1912, lng: -79.8871 },
-    ciudad: 'Guayaquil',
-    provincia: 'Guayas',
-    nombre_contacto: 'Dra. María Solís',
-    numero_celular: '0987654321'
-  },
-  {
-    id: '3',
-    nombre_proveedor: 'Auxilio Vial Azuay',
-    categoria: 'Auxilio Vial',
-    direccion: 'Calle Larga y Huayna Cápac',
-    ubicacion: { lat: -2.9001, lng: -79.0059 },
-    ciudad: 'Cuenca',
-    provincia: 'Azuay',
-    nombre_contacto: 'Juan Cueva',
-    numero_celular: '0955554433'
-  },
-  {
-    id: '4',
-    nombre_proveedor: 'Dental Care Quito Norte',
-    categoria: 'Dental',
-    direccion: 'Av. Galo Plaza Lasso',
-    ubicacion: { lat: -0.1250, lng: -78.4750 },
-    ciudad: 'Quito',
-    provincia: 'Pichincha',
-    nombre_contacto: 'Luis Méndez',
-    numero_celular: '0966667788'
-  },
-  {
-    id: '5',
-    nombre_proveedor: 'Seguros del Pacífico',
-    categoria: 'Seguro',
-    direccion: 'Puerto Santa Ana, Edificio The Point',
-    ubicacion: { lat: -2.1790, lng: -79.8760 },
-    ciudad: 'Guayaquil',
-    provincia: 'Guayas',
-    nombre_contacto: 'Andrea Rivas',
-    numero_celular: '0999991122'
-  }
-];
+// Seed data vacío para obligar al uso del Excel según solicitud "NO INVENTES DATOS"
+export const SEED_DATA: Proveedor[] = [];
