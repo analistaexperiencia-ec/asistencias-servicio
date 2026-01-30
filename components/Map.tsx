@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import { Proveedor, Ubicacion } from '../types';
 
@@ -24,31 +23,40 @@ const MapView: React.FC<MapProps> = ({
   const markersRef = useRef<Map<string, any>>(new Map());
   const userMarkerRef = useRef<any>(null);
 
-  // Inicialización única del mapa
+  // Inicialización del mapa
   useEffect(() => {
     // @ts-ignore
     const L = window.L;
     if (!L || !containerRef.current || mapRef.current) return;
 
-    // Crear el mapa
-    mapRef.current = L.map(containerRef.current, {
-      zoomControl: false // Lo movemos a la derecha para que no estorbe
-    }).setView([-1.8312, -78.1834], 7);
+    // Pequeño timeout para asegurar que el contenedor tiene dimensiones
+    const timer = setTimeout(() => {
+      if (!containerRef.current) return;
 
-    L.control.zoom({ position: 'topright' }).addTo(mapRef.current);
+      mapRef.current = L.map(containerRef.current, {
+        zoomControl: false,
+        attributionControl: true
+      }).setView([-1.8312, -78.1834], 7);
 
-    L.tileLayer('https://{s}.tile.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      subdomains: 'abcd',
-      maxZoom: 20
-    }).addTo(mapRef.current);
+      L.control.zoom({ position: 'topright' }).addTo(mapRef.current);
 
-    // Permitir clic para establecer ubicación
-    mapRef.current.on('click', (e: any) => {
-      onSetUserLocation({ lat: e.latlng.lat, lng: e.latlng.lng });
-    });
+      // Usamos OpenStreetMap estándar que es el más robusto para pruebas
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(mapRef.current);
+
+      // Listener para clics en el mapa
+      mapRef.current.on('click', (e: any) => {
+        onSetUserLocation({ lat: e.latlng.lat, lng: e.latlng.lng });
+      });
+
+      // Forzar renderizado correcto
+      mapRef.current.invalidateSize();
+    }, 100);
 
     return () => {
+      clearTimeout(timer);
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
@@ -56,16 +64,16 @@ const MapView: React.FC<MapProps> = ({
     };
   }, []);
 
-  // Manejar redimensionamiento cuando cambia el sidebar
+  // Actualizar tamaño cuando el sidebar cambia
   useEffect(() => {
     if (mapRef.current) {
       setTimeout(() => {
         mapRef.current.invalidateSize();
-      }, 300); // Esperar a que la transición del sidebar termine
+      }, 350);
     }
   }, [isSidebarOpen]);
 
-  // Actualizar marcadores y capas
+  // Manejo de marcadores
   useEffect(() => {
     // @ts-ignore
     const L = window.L;
@@ -73,79 +81,78 @@ const MapView: React.FC<MapProps> = ({
 
     const map = mapRef.current;
 
-    // 1. Marcadores de Proveedores
-    markersRef.current.forEach(marker => marker.remove());
+    // Limpiar marcadores antiguos
+    markersRef.current.forEach(m => m.remove());
     markersRef.current.clear();
 
+    // Marcadores de proveedores
     proveedores.forEach(p => {
       const isSelected = p.id === selectedId;
       const marker = L.circleMarker([p.ubicacion.lat, p.ubicacion.lng], {
         radius: isSelected ? 12 : 8,
-        fillColor: isSelected ? '#ef4444' : '#1A365D',
-        color: '#fff',
+        fillColor: isSelected ? '#ef4444' : '#1e3a8a',
+        color: '#ffffff',
         weight: 2,
         opacity: 1,
-        fillOpacity: 0.9
+        fillOpacity: 0.8
       }).addTo(map);
 
-      marker.bindPopup(`
-        <div class="p-1 font-sans">
-          <strong class="text-[#1A365D] block mb-1">${p.nombre_proveedor}</strong>
-          <span class="text-[10px] bg-slate-100 px-2 py-0.5 rounded text-slate-600 uppercase font-bold">${p.categoria}</span>
-          <div class="mt-2 text-sm font-bold text-slate-700">${p.numero_celular}</div>
-        </div>
-      `, { closeButton: false });
+      marker.bindPopup(`<b>${p.nombre_proveedor}</b><br>${p.categoria}`, { closeButton: false });
+      
+      marker.on('click', () => {
+        onSelectProvider(p.id);
+        marker.openPopup();
+      });
 
-      marker.on('click', () => onSelectProvider(p.id));
       markersRef.current.set(p.id, marker);
     });
 
-    // 2. Marcador de Usuario
+    // Marcador de usuario
     if (userLocation) {
       if (userMarkerRef.current) userMarkerRef.current.remove();
       
-      userMarkerRef.current = L.marker([userLocation.lat, userLocation.lng], {
-        icon: L.divIcon({
-          className: 'user-marker-icon',
-          html: `
-            <div class="relative flex items-center justify-center">
-              <div class="absolute w-8 h-8 bg-blue-500/30 rounded-full animate-ping"></div>
-              <div class="w-4 h-4 bg-blue-600 rounded-full border-2 border-white shadow-lg"></div>
-            </div>
-          `,
-          iconSize: [16, 16],
-          iconAnchor: [8, 8]
-        })
+      userMarkerRef.current = L.circleMarker([userLocation.lat, userLocation.lng], {
+        radius: 7,
+        fillColor: '#3b82f6',
+        color: '#ffffff',
+        weight: 3,
+        opacity: 1,
+        fillOpacity: 1
       }).addTo(map);
-
-      // Si no hay selección, centrar en el usuario la primera vez
-      if (!selectedId && userLocation) {
-        // map.setView([userLocation.lat, userLocation.lng], 13);
-      }
+      
+      userMarkerRef.current.bindTooltip("Tu ubicación", { permanent: false, direction: 'top' });
     }
 
-    // 3. Centrar en seleccionado
+    // Centrar si hay uno seleccionado
     if (selectedId) {
-      const selected = proveedores.find(p => p.id === selectedId);
-      if (selected) {
-        map.flyTo([selected.ubicacion.lat, selected.ubicacion.lng], 15, {
-          duration: 1.5
-        });
+      const p = proveedores.find(x => x.id === selectedId);
+      if (p) {
+        map.flyTo([p.ubicacion.lat, p.ubicacion.lng], 14, { animate: true, duration: 1 });
       }
     }
   }, [proveedores, userLocation, selectedId]);
 
   return (
-    <div className="h-full w-full relative group">
-      <div ref={containerRef} className="h-full w-full" />
+    <div className="absolute inset-0 w-full h-full z-0">
+      <div ref={containerRef} className="w-full h-full" />
       
-      {/* Overlay de ayuda */}
+      {/* Indicador de carga si el mapa no se ha inicializado */}
+      {!mapRef.current && (
+        <div className="absolute inset-0 flex items-center justify-center bg-slate-100 z-10">
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            <span className="text-sm font-medium text-slate-500 uppercase tracking-widest">Cargando Mapa...</span>
+          </div>
+        </div>
+      )}
+
+      {/* Instrucciones flotantes */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
-        <div className="bg-white/90 backdrop-blur px-4 py-2 rounded-full shadow-lg border border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider flex items-center gap-2">
-          <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+        <div className="bg-white/90 backdrop-blur shadow-xl border border-slate-200 px-4 py-2 rounded-full text-[10px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+          <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
           </svg>
-          Haz clic en el mapa para marcar tu ubicación
+          Haz clic en el mapa para marcar tu posición
         </div>
       </div>
     </div>
