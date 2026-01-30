@@ -1,0 +1,7 @@
+{
+  "name": "Asistencia Ecuador Pro",
+  "description": "Plataforma avanzada de asistencia vial y médica para Ecuador con geolocalización en tiempo real y cálculo de distancias por carretera.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
